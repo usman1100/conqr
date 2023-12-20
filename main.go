@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/fatih/color"
@@ -16,5 +16,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Hello World")
+	firstLink := args[0]
+
+	color.Green("Downloading %s", firstLink)
+	response, err := http.Get(firstLink)
+
+	if err != nil {
+		color.Red("Error downloading %s", firstLink)
+		os.Exit(1)
+	}
+
+	color.Green("Downloaded")
+
+	responseSize := response.Request.ContentLength
+
+	color.Yellow("Size: %d", responseSize)
 }
