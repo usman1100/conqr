@@ -1,4 +1,4 @@
-**# conqr: Conquer Speed Limits with Concurrent Downloads**
+# conqr: Conquer Speed Limits with Concurrent Downloads
 
 **Conqr** is a blazing-fast, concurrent CLI download manager written in Go, designed to shatter speed limits and turbocharge your downloads. It achieves this by employing a powerful strategy:
 
