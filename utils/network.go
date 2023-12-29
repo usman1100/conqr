@@ -1,29 +1,35 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/fatih/color"
 )
 
-func CheckIfRangeHeaderIsSupported(url string) {
+func GetRequestContentLength(url string) (int, error) {
 
 	head, err := http.Head(url)
 
 	if err != nil {
-		color.Red("Could not send head request")
+		return 0, err
 	}
 
-	rangeHeader := head.Request.Header.Get("range")
+	rangeHeader := head.Header.Get("Content-Length")
 
-	rangeHeaderSupported := len(rangeHeader) == 0
-
-	if rangeHeaderSupported {
-		color.Green("Multi part download is suported on this file")
-	} else {
-		color.Red("Server does not support multipart downloads")
+	if len(rangeHeader) == 0 {
+		return 0, errors.New("multi part download is not suported on this file")
 	}
+
+	convertedRange, err := strconv.Atoi(rangeHeader)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return convertedRange, nil
 
 }
 
@@ -55,9 +61,14 @@ func DownloadFile(fileUrl string) {
 
 	fileName := GetFileNameFromUrl(fileUrl)
 
-	CheckIfRangeHeaderIsSupported(fileUrl)
+	fileLength, err := GetRequestContentLength(fileUrl)
+
+	if err != nil {
+		color.Red(err.Error())
+	}
 
 	fmt.Println("Downloading '", fileName, "'")
+	fmt.Println("File size '", fileLength, "'")
 
 	DownloadChunk(0, 1, fileUrl)
 
