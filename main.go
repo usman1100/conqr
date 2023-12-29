@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/usman1100/conqr/utils"
 )
 
 func main() {
@@ -15,12 +15,12 @@ func main() {
 
 	flag.Parse()
 
-	url, chunks := *urlPtr, *chunksPtr
+	url, _ := *urlPtr, *chunksPtr
 
 	if len(url) == 0 {
 		color.Red("Invliad URL provided")
 		os.Exit(1)
 	}
 
-	fmt.Println(url, chunks)
+	utils.DownloadFile(url)
 }
