@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/fatih/color"
 )
@@ -28,23 +27,38 @@ func CheckIfRangeHeaderIsSupported(url string) {
 
 }
 
+func DownloadChunk(rangeStart int, rangeEnd int, url string) {
+	httpClient := &http.Client{}
+
+	req, err := http.NewRequest("GET", url, nil)
+
+	if err != nil {
+		color.Red("Error in making request at chunk", rangeStart, rangeEnd)
+		return
+	}
+	rangeValue := fmt.Sprintf("bytes=%d-%d", rangeStart, rangeEnd)
+	req.Header.Set("Range", rangeValue)
+
+	res, err := httpClient.Do(req)
+
+	if err != nil {
+		color.Red("Request failed for chunk", rangeStart, rangeEnd)
+		return
+	}
+
+	defer res.Body.Close()
+
+	fmt.Println(res.ContentLength)
+}
+
 func DownloadFile(fileUrl string) {
 
 	fileName := GetFileNameFromUrl(fileUrl)
 
 	CheckIfRangeHeaderIsSupported(fileUrl)
 
-	fmt.Println("Downloading", fileName)
+	fmt.Println("Downloading '", fileName, "'")
 
-	response, err := http.Get(fileUrl)
-
-	if err != nil {
-		color.Red("Could not download file, %s", err.Error())
-		os.Exit(1)
-	}
-
-	defer response.Body.Close()
-
-	fmt.Println("Size:", response.ContentLength, "bytes")
+	DownloadChunk(0, 1, fileUrl)
 
 }
