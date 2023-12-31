@@ -22,9 +22,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	if !utils.CheckIfRangeSupported(url) {
-		color.Red("Range not supported on this URL")
-		os.Exit(1)
+	if utils.CheckIfRangeSupported(url) {
+		bodyReader, err := utils.DownloadFullFile(url)
+		if err != nil {
+			color.Red("Error in downloading file", err.Error())
+			os.Exit(1)
+		}
+
+		fileName := utils.GetFileNameFromUrl(url)
+
+		err = utils.WriteDataToFile(&bodyReader, fileName)
+
+		if err != nil {
+			color.Red("Error in writing file", err.Error())
+			os.Exit(1)
+		}
+
+		color.Green("File downloaded successfully")
+
 	}
 
 }
