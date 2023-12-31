@@ -15,12 +15,16 @@ func main() {
 
 	flag.Parse()
 
-	url, chunks := *urlPtr, *chunksPtr
+	url, _ := *urlPtr, *chunksPtr
 
-	if len(url) == 0 {
+	if !utils.IsStringUrl(url) {
 		color.Red("Invliad URL provided")
 		os.Exit(1)
 	}
 
-	utils.DownloadFile(url, chunks)
+	if !utils.CheckIfRangeSupported(url) {
+		color.Red("Range not supported on this URL")
+		os.Exit(1)
+	}
+
 }
