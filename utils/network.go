@@ -57,7 +57,7 @@ func DownloadChunk(rangeStart int, rangeEnd int, url string) {
 	fmt.Println(res.ContentLength)
 }
 
-func DownloadFile(fileUrl string) {
+func DownloadFile(fileUrl string, numberOfChunks int) {
 
 	fileName := GetFileNameFromUrl(fileUrl)
 
@@ -67,9 +67,15 @@ func DownloadFile(fileUrl string) {
 		color.Red(err.Error())
 	}
 
+	chunkSize := fileLength / numberOfChunks
+
 	fmt.Println("Downloading '", fileName, "'")
 	fmt.Println("File size '", fileLength, "'")
 
-	DownloadChunk(0, 1, fileUrl)
+	for i := 0; i < numberOfChunks; i++ {
+		start := i * chunkSize
+		end := (i + 1) * chunkSize
+		DownloadChunk(start, end, fileUrl)
+	}
 
 }

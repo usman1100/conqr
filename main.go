@@ -15,12 +15,12 @@ func main() {
 
 	flag.Parse()
 
-	url, _ := *urlPtr, *chunksPtr
+	url, chunks := *urlPtr, *chunksPtr
 
 	if len(url) == 0 {
 		color.Red("Invliad URL provided")
 		os.Exit(1)
 	}
 
-	utils.DownloadFile(url)
+	utils.DownloadFile(url, chunks)
 }
