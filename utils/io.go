@@ -4,6 +4,8 @@ import (
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/fatih/color"
 )
 
 func FileAlreadExists(fileName string) bool {
@@ -41,4 +43,36 @@ func WriteDataToFile(reader *io.ReadCloser, fileName string) error {
 	}
 
 	return nil
+}
+
+func StitchChunksIntoFile(folderName string, numberOfChunks int) {
+	// create file
+	// read chunks
+	// write to file
+	// delete chunks
+
+	f, err := os.Create(folderName)
+
+	if err != nil {
+		color.Red("Error in creating file", folderName)
+	}
+
+	defer f.Close()
+
+	for i := 0; i < numberOfChunks; i++ {
+		chunkName := folderName + "/" + strconv.Itoa(i) + ".chunk"
+		chunkFile, err := os.Open(chunkName)
+
+		if err != nil {
+			color.Red("Error in opening chunk", chunkName)
+		}
+
+		defer chunkFile.Close()
+
+		_, err = io.Copy(f, chunkFile)
+
+		if err != nil {
+			color.Red("Error in writing chunk", chunkName)
+		}
+	}
 }

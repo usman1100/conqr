@@ -22,7 +22,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if utils.CheckIfRangeSupported(url) {
+	if !utils.CheckIfRangeSupported(url) {
 		bodyReader, err := utils.DownloadFullFile(url)
 		if err != nil {
 			color.Red("Error in downloading file", err.Error())
@@ -40,6 +40,12 @@ func main() {
 
 		color.Green("File downloaded successfully")
 
+	} else {
+		err := utils.DownloadInChunks(url, *chunksPtr)
+		if err != nil {
+			color.Red("Error in downloading file", err.Error())
+			os.Exit(1)
+		}
 	}
 
 }

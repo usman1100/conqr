@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
+	"sync"
 
 	"github.com/fatih/color"
 )
@@ -46,14 +48,14 @@ func GetRequestContentLength(url string) (int, error) {
 
 }
 
-func DownloadChunk(rangeStart int, rangeEnd int, url string) {
+func DownloadChunk(rangeStart int, rangeEnd int, url string) (io.ReadCloser, error) {
 	httpClient := &http.Client{}
 
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
 		color.Red("Error in making request at chunk", rangeStart, rangeEnd)
-		return
+		return nil, err
 	}
 	rangeValue := fmt.Sprintf("bytes=%d-%d", rangeStart, rangeEnd)
 	req.Header.Set("Range", rangeValue)
@@ -62,12 +64,12 @@ func DownloadChunk(rangeStart int, rangeEnd int, url string) {
 
 	if err != nil {
 		color.Red("Request failed for chunk", rangeStart, rangeEnd)
-		return
+		return nil, err
 	}
 
-	defer res.Body.Close()
+	// defer res.Body.Close()
 
-	fmt.Println(res.ContentLength)
+	return res.Body, nil
 }
 
 // download the whole file, without range
@@ -89,9 +91,13 @@ func DownloadFullFile(url string) (io.ReadCloser, error) {
 	return res.Body, nil
 }
 
-func DownloadFile(fileUrl string, numberOfChunks int) {
+func DownloadInChunks(fileUrl string, numberOfChunks int) error {
 
-	fileName := GetFileNameFromUrl(fileUrl)
+	var wg sync.WaitGroup
+
+	uniqueFolderName := GetFileNameFromUrl(fileUrl)
+
+	// uniqueFolderName := GenerateFileName(folderName)
 
 	fileLength, err := GetRequestContentLength(fileUrl)
 
@@ -101,13 +107,41 @@ func DownloadFile(fileUrl string, numberOfChunks int) {
 
 	chunkSize := fileLength / numberOfChunks
 
-	fmt.Println("Downloading '", fileName, "'")
-	fmt.Println("File size '", fileLength, "'")
+	// create folder
+	err = os.Mkdir(uniqueFolderName, os.ModePerm)
+
+	if err != nil {
+		color.Red("Error in creating folder", uniqueFolderName)
+		return errors.New("error in creating folder")
+	}
 
 	for i := 0; i < numberOfChunks; i++ {
-		start := i * chunkSize
-		end := (i + 1) * chunkSize
-		DownloadChunk(start, end, fileUrl)
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			start := i * chunkSize
+			end := (i + 1) * chunkSize
+			color.Green("Downloading chunk", start, end)
+			bodyReader, err := DownloadChunk(start, end, fileUrl)
+
+			if err != nil {
+				color.Red("Error in downloading chunk", start, end)
+			}
+			chunkName := uniqueFolderName + "/" + strconv.Itoa(i) + ".chunk"
+			err = WriteDataToFile(&bodyReader, chunkName)
+
+			if err != nil {
+				color.Red("Error in writing chunk", start, end)
+				fmt.Println("error in writing chunk" + err.Error())
+			}
+		}(i)
+
 	}
+
+	wg.Wait()
+
+	StitchChunksIntoFile(uniqueFolderName, numberOfChunks)
+
+	return nil
 
 }
