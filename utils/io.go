@@ -8,10 +8,15 @@ import (
 	"github.com/fatih/color"
 )
 
-func FileAlreadExists(fileName string) bool {
-	_, err := os.Stat(fileName)
-
-	return err != nil
+func FileAlreadExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }
 
 func GenerateFileName(fileName string) string {
@@ -19,7 +24,7 @@ func GenerateFileName(fileName string) string {
 	tries := 0
 	newFileName := fileName
 
-	for FileAlreadExists(fileName) {
+	for FileAlreadExists(newFileName) {
 		tries++
 		newFileName = fileName + "(" + strconv.Itoa(tries) + ")"
 	}
@@ -46,33 +51,48 @@ func WriteDataToFile(reader *io.ReadCloser, fileName string) error {
 }
 
 func StitchChunksIntoFile(folderName string, numberOfChunks int) {
-	// create file
-	// read chunks
-	// write to file
-	// delete chunks
-
-	f, err := os.Create(folderName)
+	outputFile, err := os.Create(folderName + "/" + folderName)
 
 	if err != nil {
-		color.Red("Error in creating file", folderName)
+		color.Red("error in open output file", err.Error())
+		return
 	}
 
-	defer f.Close()
+	defer outputFile.Close()
 
 	for i := 0; i < numberOfChunks; i++ {
 		chunkName := folderName + "/" + strconv.Itoa(i) + ".chunk"
 		chunkFile, err := os.Open(chunkName)
 
 		if err != nil {
-			color.Red("Error in opening chunk", chunkName)
+			color.Red("error in open chunk file", err.Error())
+			return
 		}
 
 		defer chunkFile.Close()
 
-		_, err = io.Copy(f, chunkFile)
+		_, err = io.Copy(outputFile, chunkFile)
 
 		if err != nil {
-			color.Red("Error in writing chunk", chunkName)
+			color.Red(err.Error())
+			return
 		}
+		// os.Remove(chunkName)
+	}
+
+	// check if a chunk with name [numberOfChunks + 1].chunk exists
+	finalChunkName := folderName + "/" + strconv.Itoa(numberOfChunks) + ".chunk"
+	finalChunkFile, err := os.Open(finalChunkName)
+
+	if err != nil {
+		return
+	}
+
+	defer finalChunkFile.Close()
+
+	_, err = io.Copy(outputFile, finalChunkFile)
+
+	if err != nil {
+		return
 	}
 }
