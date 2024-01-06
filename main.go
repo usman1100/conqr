@@ -23,6 +23,7 @@ func main() {
 	}
 
 	if !utils.CheckIfRangeSupported(url) {
+		color.Yellow("Range header not supported, downloading in single chunk")
 		bodyReader, err := utils.DownloadFullFile(url)
 		if err != nil {
 			color.Red(err.Error())

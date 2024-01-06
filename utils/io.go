@@ -77,7 +77,7 @@ func StitchChunksIntoFile(folderName string, numberOfChunks int) {
 			color.Red(err.Error())
 			return
 		}
-		// os.Remove(chunkName)
+		os.Remove(chunkName)
 	}
 
 	// check if a chunk with name [numberOfChunks + 1].chunk exists
@@ -95,4 +95,6 @@ func StitchChunksIntoFile(folderName string, numberOfChunks int) {
 	if err != nil {
 		return
 	}
+
+	os.Remove(finalChunkName)
 }
