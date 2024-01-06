@@ -18,7 +18,7 @@
 1. To download a file:
 
    ```bash
-   conqr <URL>
+   conqr -u <URL>
    ```
 
    Replace `<URL>` with the actual URL of the file you wish to download.
@@ -26,7 +26,7 @@
 2. To specify the number of chunks:
 
    ```bash
-   conqr -c <number_of_chunks> <URL>
+   conqr -c <number_of_chunks> -u <URL>
    ```
 
 **Contributing:**
