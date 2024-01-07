@@ -3,7 +3,14 @@ package files
 import (
 	"os"
 	"strconv"
+	"strings"
 )
+
+func GetFileNameFromUrl(fileUrl string) string {
+	splits := strings.Split(fileUrl, "/")
+	fileName := splits[len(splits)-1]
+	return fileName
+}
 
 func FileAlreadExists(path string) bool {
 	_, err := os.Stat(path)

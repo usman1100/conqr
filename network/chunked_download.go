@@ -11,7 +11,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/usman1100/conqr/files"
-	"github.com/usman1100/conqr/utils"
 )
 
 func DownloadChunk(rangeStart int, rangeEnd int, url string) (io.ReadCloser, error) {
@@ -42,7 +41,7 @@ func DownloadInChunks(fileUrl string, numberOfChunks int) error {
 
 	var wg sync.WaitGroup
 
-	folderName := utils.GetFileNameFromUrl(fileUrl)
+	folderName := files.GetFileNameFromUrl(fileUrl)
 
 	uniqueFolderName := files.GenerateFileName(folderName)
 
