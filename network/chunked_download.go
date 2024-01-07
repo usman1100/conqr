@@ -1,4 +1,4 @@
-package utils
+package network
 
 import (
 	"errors"
@@ -10,43 +10,9 @@ import (
 	"sync"
 
 	"github.com/fatih/color"
+	"github.com/usman1100/conqr/files"
+	"github.com/usman1100/conqr/utils"
 )
-
-func CheckIfRangeSupported(url string) bool {
-	head, err := http.Head(url)
-
-	if err != nil {
-		return false
-	}
-
-	rangeHeader := head.Header.Get("Accept-Ranges")
-
-	return rangeHeader == "bytes"
-}
-
-func GetRequestContentLength(url string) (int, error) {
-
-	head, err := http.Head(url)
-
-	if err != nil {
-		return 0, err
-	}
-
-	rangeHeader := head.Header.Get("Content-Length")
-
-	if len(rangeHeader) == 0 {
-		return 0, errors.New("cannot get content length")
-	}
-
-	convertedRange, err := strconv.Atoi(rangeHeader)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return convertedRange, nil
-
-}
 
 func DownloadChunk(rangeStart int, rangeEnd int, url string) (io.ReadCloser, error) {
 	httpClient := &http.Client{}
@@ -72,32 +38,13 @@ func DownloadChunk(rangeStart int, rangeEnd int, url string) (io.ReadCloser, err
 	return res.Body, nil
 }
 
-// download the whole file, without range
-func DownloadFullFile(url string) (io.ReadCloser, error) {
-	httpClient := &http.Client{}
-
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := httpClient.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return res.Body, nil
-}
-
 func DownloadInChunks(fileUrl string, numberOfChunks int) error {
 
 	var wg sync.WaitGroup
 
-	folderName := GetFileNameFromUrl(fileUrl)
+	folderName := utils.GetFileNameFromUrl(fileUrl)
 
-	uniqueFolderName := GenerateFileName(folderName)
+	uniqueFolderName := files.GenerateFileName(folderName)
 
 	fileLength, err := GetRequestContentLength(fileUrl)
 
@@ -131,7 +78,7 @@ func DownloadInChunks(fileUrl string, numberOfChunks int) error {
 				color.Red("Error in downloading chunk", start, end)
 			}
 			chunkName := uniqueFolderName + "/" + strconv.Itoa(i) + ".chunk"
-			err = WriteDataToFile(&bodyReader, chunkName)
+			err = files.WriteDataToFile(&bodyReader, chunkName)
 
 			if err != nil {
 				color.Red("Error in writing chunk", start, end)
@@ -156,7 +103,7 @@ func DownloadInChunks(fileUrl string, numberOfChunks int) error {
 		if err != nil {
 			color.Red("Error in downloading chunk", lastChunkStart, lastChunkEnd)
 		}
-		err = WriteDataToFile(&bodyReader, lastChunkName)
+		err = files.WriteDataToFile(&bodyReader, lastChunkName)
 
 		if err != nil {
 			color.Red("Error in writing chunk", lastChunkStart, lastChunkEnd)
@@ -166,7 +113,7 @@ func DownloadInChunks(fileUrl string, numberOfChunks int) error {
 
 	wg.Wait()
 
-	StitchChunksIntoFile(uniqueFolderName, numberOfChunks)
+	files.StitchChunksIntoFile(uniqueFolderName, numberOfChunks)
 
 	return nil
 

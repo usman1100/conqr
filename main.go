@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/usman1100/conqr/files"
+	"github.com/usman1100/conqr/network"
 	"github.com/usman1100/conqr/utils"
 )
 
@@ -22,9 +24,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if !utils.CheckIfRangeSupported(url) {
+	if !network.CheckIfRangeSupported(url) {
 		color.Yellow("Range header not supported, downloading in single chunk")
-		bodyReader, err := utils.DownloadFullFile(url)
+		bodyReader, err := network.DownloadFullFile(url)
 		if err != nil {
 			color.Red(err.Error())
 			os.Exit(1)
@@ -32,7 +34,7 @@ func main() {
 
 		fileName := utils.GetFileNameFromUrl(url)
 
-		err = utils.WriteDataToFile(&bodyReader, fileName)
+		err = files.WriteDataToFile(&bodyReader, fileName)
 
 		if err != nil {
 			color.Red("Error in writing file", err.Error())
@@ -42,7 +44,7 @@ func main() {
 		color.Green("File downloaded successfully")
 
 	} else {
-		err := utils.DownloadInChunks(url, *chunksPtr)
+		err := network.DownloadInChunks(url, *chunksPtr)
 		if err != nil {
 			color.Red(err.Error())
 			os.Exit(1)
