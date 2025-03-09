@@ -32,7 +32,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fileName := utils.GetFileNameFromUrl(url)
+		fileName := files.GetFileNameFromUrl(url)
 
 		err = files.WriteDataToFile(&bodyReader, fileName)
 
